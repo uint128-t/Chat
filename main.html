@@ -138,7 +138,7 @@
                 return
             }
             let content = m.content
-            var parsed = writer.render(reader.parse(escapeHtml(content))).replace("\n","<br>")
+            var parsed = writer.render(reader.parse(escapeHtml(content))).replaceAll("\n","<br>")
             parsed = parsed.substring(0,parsed.length-2)
             let user = m.user
             console.log("Message")
