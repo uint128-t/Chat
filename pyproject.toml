@@ -10,6 +10,7 @@ Flask = "^2.0.1"
 Flask-SocketIO = "^5.1.0"
 Flask-Cors = "^3.0.10"
 eventlet = "^0.31.0"
+replit = "^3.2.4"
 
 [tool.poetry.dev-dependencies]
 

@@ -8,16 +8,13 @@
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 </head>
 <body class="container-fluid" style="overflow-y: hidden;background: linear-gradient(90deg, rgba(55,230,190,1) 0%, rgba(0,212,255,1) 100%);" scroll="no">
-    <script type="text/javascript" charset="utf-8">
-        var ID = document.getElementById.bind(document)
-    </script>
     <div class="box">
         <h1 class="title">
-            Log in
+            Sign up
         </h1>
         <br>
         <div class="options">
-            <a href="/signup.html" style="padding-top: 5vh;padding-bottom: 5vh;display: block;">Not a user? Sign up!</a>
+            <br>
             <input type="text" id="uname" placeholder="Username...">
             <br>
             <br>
@@ -25,34 +22,34 @@
             <br>
             <br>
             <script>
-                if (localStorage.getItem("usr")!=null){
-                    window.location.href = "/chat.html"
-                }
                 function login(){
+                    ID = document.getElementById.bind(document)
                     let un = ID("uname").value
                     let pw = ID("pword").value
                     $.ajax({
-                        url:"/auth",
+                        url:"/mkacc",
                         data:{
                             usr: un,
                             pswd: pw
                         },
                         success: (d)=>{
-                            if (d.verified){
+                            if (d.status == "Success")
+                            {
                                 localStorage.usr = un
                                 localStorage.pwd = pw
+                                ID("message").innerText = "Account creation successful"
+                                window.location.href = "/"
                             } else{
-                                ID("message").innerText = d.message
+                                ID("message").innerText= d.message
                             }
-                        },
-                        error: (d)=>{
-                            alert("Something's not right! Check your Internet connection.")
+                        }, error: (d)=>{
+                            alert("Something's not working! Check your Internet connection")
                         }
                     })
                 }
             </script>
             <div id="message"></div>
-            <button class="login-btn" onclick="login();">LOGIN</button>
+            <button class="login-btn" onclick="login();">SIGN UP</button>
         </div>
     </div>
     <style>
