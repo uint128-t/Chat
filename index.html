@@ -6,8 +6,6 @@
     <title>Chat</title>
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <link rel="stylesheet" href="jquery.toast.css">
-    <script src="jquery.toast.js"></script>
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
     <div id="main">
@@ -50,14 +48,7 @@
         }
         socket.on('connect', ()=>{
             guestid = "Guest "+socket.io.engine.id.substring(0,5);
-            $.toast({
-                heading: 'Info',
-                text: 'Connected! \nType /join <room name> to join a room. \nIf it doesn\'t exist, it will be created.',
-                icon: 'info',
-                loader: false,        // Change it to false to disable loader
-                loaderBg: '#00FFEF',  // To change the background
-                position: "top-center"
-            })
+            ID("chat").appendChild(document.createElement("div")).innerText = "Connected! \nType /join <room name> to join a room. \nIf it doesn\'t exist, it will be created.\n"
             socket.emit('room',{room:"main",name:ID("nName").value||guestid})
             socket.emit("smessage",{message:`**${ID("nName").value||guestid}** connected.`,user:"SYSTEM",room:room})
         })
@@ -65,39 +56,15 @@
             socket.emit("smessage",{message:`**${ID("nName").value||guestid}** disconnected.`,user:"SYSTEM",room:room})
         })
         socket.on("disconnect",()=>{
-            $.toast({
-                heading: 'Error',
-                text: 'Something went wrong and the connection was lost.',
-                icon: 'error',
-                loader: false,        // Change it to false to disable loader
-                loaderBg: '#FF0000',  // To change the background
-                position: "top-center"
-            })
+            ID("chat").appendChild(document.createElement("div")).innerText = "Connection lost."
         })
         send = ()=>{
             let n=ID("chatBox").value.trim()
             let u=ID("nName").value.trim()||guestid
-            if (n==""){
-                $.toast({
-                    heading: 'Warning',
-                    text: 'Cannot send an empty message',
-                    icon: 'warning',
-                    loader: false,        // Change it to false to disable loader
-                    loaderBg: '#FF0000',  // To change the background
-                    position: "top-center"
-                })
-                ID("chatBox").value = ""
+            if (!n){
                 return
             }
             if (n=="/clear"){
-                $.toast({
-                    heading: 'Chat cleared',
-                    text: 'Chat has been cleared.',
-                    icon: 'info',
-                    loader: false,        // Change it to false to disable loader
-                    loaderBg: '#FF0000',  // To change the background
-                    position: "top-center"
-                })
                 ID("chat").innerHTML="<i>Chat was cleared</i><br><br>"
                 ID("chatBox").value = ""
                 return
@@ -106,14 +73,8 @@
                 return
             }
             if (u=="SYSTEM"){
-                 $.toast({
-                    heading: 'Warning',
-                    text: 'You are not the system',
-                    icon: 'warning',
-                    loader: false,        // Change it to false to disable loader
-                    loaderBg: '#FF0000',  // To change the background
-                    position: "top-center"
-                })
+                ID("chat").appendChild(document.createElement("div")).innerText = "You cannot send messages as SYSTEM"
+                ID("chatBox").value = ""
                 return
             }
             if (n.startsWith("/join ")){
@@ -145,6 +106,7 @@
             console.log(us)
             ID("users").innerText = us.join(", ")
         })
+
         socket.on("message",(m)=>{
             let content = m.content
             var parsed = writer.render(reader.parse(escapeHtml(content)))
@@ -155,12 +117,21 @@
             msgelem.classList.add("message")
             ID("chat").appendChild(msgelem)
             ID("content").scrollTop=0
+            if (content.includes(ID("nName").value||guestid)){
+                msgelem.classList.add("mention")
+                if (!document.hasFocus()){
+                    
+                }
+            }
         })
         
         ID("nName").addEventListener("focusout",()=>{
             socket.emit("name",ID("nName").value||guestid)
         })
-        ID("input").addEventListener("click",ID("chatBox").focus)
+        // ID("input").addEventListener("click",()=>{
+        //     ID("chatBox").select()
+        //     ID("chatBox").focus()
+        // })
     </script>
     <style>
         .box{
@@ -169,12 +140,13 @@
             border: 1px solid #000000;
             border-radius: 10px;
             align-items: center;
-            padding:10px;
+            /* padding:10px; */
         }
         .text-box{
-            height: 20px;
+            height: 40px;
             flex-grow:1;
             line-height: 20px;
+            padding:10px;
         }
         #send{
             width:20px;
@@ -239,6 +211,9 @@
             content:"Users in this room:";
             display:block;
             font-weight: bold;
+        }
+        .mention{
+            background-color: #ffaa0050;
         }
     </style>
 </body>
