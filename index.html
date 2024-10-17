@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="jquery.toast.css">
+    <script src="jquery.toast.js"></script>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
+    <div id="main">
+        <div class="content" id="content">
+            <div id="chat">
+                <!--chat content-->
+            </div>
+            <div id="users"></div>
+        </div>
+        <div class="box" id="input">
+            <textarea id="chatBox" class="text-box" placeholder="Send a message..."></textarea>
+            Name:&nbsp;
+            <input type="text" id="nName" placeholder="Name" class="nName">
+            Room:&nbsp;
+            <span id="room">main</span>
+            <button id="send">
+                <img src="paper-plane.svg" height="20" width="20">
+            </button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        var pressedKeys = {};
+        window.onkeyup = function(e) { pressedKeys[e.keyCode] = false; }
+        window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
+
+        var socket = io();
+        var ID = document.getElementById.bind(document)
+        var room = "main"
+        var reader = new commonmark.Parser();
+        var writer = new commonmark.HtmlRenderer({safe:true});
+        var guestid = ""
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        socket.on('connect', ()=>{
+            guestid = "Guest "+socket.io.engine.id.substring(0,5);
+            $.toast({
+                heading: 'Info',
+                text: 'Connected! \nType /join <room name> to join a room. \nIf it doesn\'t exist, it will be created.',
+                icon: 'info',
+                loader: false,        // Change it to false to disable loader
+                loaderBg: '#00FFEF',  // To change the background
+                position: "top-center"
+            })
+            socket.emit('room',{room:"main",name:ID("nName").value||guestid})
+            socket.emit("smessage",{message:`**${ID("nName").value||guestid}** connected.`,user:"SYSTEM",room:room})
+        })
+        window.addEventListener("beforeunload",(e)=>{
+            socket.emit("smessage",{message:`**${ID("nName").value||guestid}** disconnected.`,user:"SYSTEM",room:room})
+        })
+        socket.on("disconnect",()=>{
+            $.toast({
+                heading: 'Error',
+                text: 'Something went wrong and the connection was lost.',
+                icon: 'error',
+                loader: false,        // Change it to false to disable loader
+                loaderBg: '#FF0000',  // To change the background
+                position: "top-center"
+            })
+        })
+        send = ()=>{
+            let n=ID("chatBox").value.trim()
+            let u=ID("nName").value.trim()||guestid
+            if (n==""){
+                $.toast({
+                    heading: 'Warning',
+                    text: 'Cannot send an empty message',
+                    icon: 'warning',
+                    loader: false,        // Change it to false to disable loader
+                    loaderBg: '#FF0000',  // To change the background
+                    position: "top-center"
+                })
+                ID("chatBox").value = ""
+                return
+            }
+            if (n=="/clear"){
+                $.toast({
+                    heading: 'Chat cleared',
+                    text: 'Chat has been cleared.',
+                    icon: 'info',
+                    loader: false,        // Change it to false to disable loader
+                    loaderBg: '#FF0000',  // To change the background
+                    position: "top-center"
+                })
+                ID("chat").innerHTML="<i>Chat was cleared</i><br><br>"
+                ID("chatBox").value = ""
+                return
+            }
+            if (pressedKeys[16]){
+                return
+            }
+            if (u=="SYSTEM"){
+                 $.toast({
+                    heading: 'Warning',
+                    text: 'You are not the system',
+                    icon: 'warning',
+                    loader: false,        // Change it to false to disable loader
+                    loaderBg: '#FF0000',  // To change the background
+                    position: "top-center"
+                })
+                return
+            }
+            if (n.startsWith("/join ")){
+                socket.emit("smessage",{message:`**${u}** left the room.`,user:"SYSTEM",room:room})
+                socket.emit('room',{room:n.substring(6),name:u})
+                room = n.substring(6)
+                ID("room").innerText = room
+                socket.emit("smessage",{message:`**${u}** entered the room.`,user:"SYSTEM",room:room})
+                ID("chatBox").value=""
+                return
+            }
+            socket.emit("smessage",{message:n,user:u,room:room})
+            ID("chatBox").value=""
+        }
+        window.onload=()=>{
+            ID("send").onclick = ()=>{
+                send()
+            }
+            ID("chatBox").addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    if (!pressedKeys[16]){
+                        e.preventDefault()
+                        send()
+                    }
+                }
+            })
+        }
+        socket.on("user",(us)=>{
+            console.log(us)
+            ID("users").innerText = us.join(", ")
+        })
+        socket.on("message",(m)=>{
+            let content = m.content
+            var parsed = writer.render(reader.parse(escapeHtml(content)))
+            let user = m.user
+            let msgelem = document.createElement("div")
+            msgelem.appendChild(document.createElement("b")).innerText = user+":"
+            msgelem.innerHTML += parsed // sorry
+            msgelem.classList.add("message")
+            ID("chat").appendChild(msgelem)
+            ID("content").scrollTop=0
+        })
+        
+        ID("nName").addEventListener("focusout",()=>{
+            socket.emit("name",ID("nName").value||guestid)
+        })
+        ID("input").addEventListener("click",ID("chatBox").focus)
+    </script>
+    <style>
+        .box{
+            display:flex;
+            flex-flow:row nowrap;
+            border: 1px solid #000000;
+            border-radius: 10px;
+            align-items: center;
+            padding:10px;
+        }
+        .text-box{
+            height: 20px;
+            flex-grow:1;
+            line-height: 20px;
+        }
+        #send{
+            width:20px;
+            height:20px;
+            display:block;
+            box-sizing: border-box;
+            border:none;
+            outline:none;
+            background: transparent;
+            padding:0;
+            margin:0;
+            margin-right: 2px;
+        }
+        .nName{
+            width: 100px;
+            margin-right: 5px;
+        }
+        textarea {
+            background-color: transparent;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            border:none;
+            outline:none;
+            padding:0;
+            margin:0;
+        }
+        #room{
+            margin-right: 5px;
+        }
+        #main{
+            display:flex;
+            flex-flow:column nowrap;
+            height:100%;
+        }
+        #content{
+            flex-grow:1;
+            position:relative;
+        }
+        body{
+            height:100vh;
+            box-sizing: border-box;
+            margin:0;
+        }
+        p{
+            padding:0;
+            margin:0;
+        }
+        .message{
+            margin-bottom: 10px;
+        }
+        #users{
+            position:absolute;
+            bottom:0;
+            right:10px;
+            border:1px solid black;
+            width:250px;
+            height:100px;
+            padding:10px;
+        }
+        #users::before{
+            content:"Users in this room:";
+            display:block;
+            font-weight: bold;
+        }
+    </style>
+</body>
+</html>
