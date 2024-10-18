@@ -113,9 +113,12 @@
             })
         }
         socket.on("user",(us)=>{
-            console.log(us)
             ID("users").innerText = us.join(", ")
         })
+
+        function escapeRegExp(text) {
+            return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        }
 
         socket.on("message",(m)=>{
             let content = m.content
@@ -127,22 +130,23 @@
             msgelem.classList.add("message")
             ID("chat").appendChild(msgelem)
             ID("chat").scrollTop=ID("chat").scrollHeight
-            if (content.includes('@'+ID("nName").value||guestid)){
+            let reusr = new RegExp(`\@${escapeRegExp(ID("nName").value||guestid)}(\\W|$)`,"mi")
+            if (reusr.test(content)){
                 msgelem.classList.add("mention")
-                if (!document.hasFocus() && Notification.permission=="granted" && isSecureContext){
+                if (document.visibilityState!="visible" && Notification.permission=="granted" && isSecureContext){
                     new Notification(`${user} mentioned you`,{body:content})
                 }
-                if (!document.hasFocus()){
+                if (document.visibilityState!="visible"){
                     unread++
-                    document.querySelector("title").innerText = `Chat (${unread})`
+                    document.title = `Chat (${unread})`
                 }
             }
         })
 
         document.addEventListener("visibilitychange",()=>{
-            if (document.hasFocus()){
+            if (document.visibilityState=="visible"){
                 unread = 0
-                document.querySelector("title").innerText = "Chat"
+                document.title = "Chat"
             }
         })
         
