@@ -7,6 +7,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
+    <dialog id="notif">
+        Allow desktop notifications?
+        <br>
+        Notifications are only sent when a user mentions you.
+        <br>
+        <div style="text-align: right;">
+            <br>
+            <button onclick="allowNotifications()">Select Yes/No</button>
+        </div>
+    </dialog>
     <div id="main">
         <div class="content" id="content">
             <div id="chat">
@@ -118,8 +128,8 @@
             ID("chat").scrollTop=ID("chat").scrollHeight
             if (content.includes(ID("nName").value||guestid)){
                 msgelem.classList.add("mention")
-                if (!document.hasFocus()){
-                    
+                if (!document.hasFocus() && Notification.permission=="granted"){
+                    new Notification(`${user} mentioned you`,{body:content})
                 }
             }
         })
@@ -127,12 +137,28 @@
         ID("nName").addEventListener("focusout",()=>{
             socket.emit("name",ID("nName").value||guestid)
         })
-        // ID("input").addEventListener("click",()=>{
-        //     ID("chatBox").select()
-        //     ID("chatBox").focus()
-        // })
+        
+        // desktop push notifications on mentions
+
+        if (Notification.permission=="default"){
+            ID("notif").showModal()
+        }
+        function allowNotifications(){
+            Notification.requestPermission().then((act)=>{
+                ID("notif").removeAttribute("open")
+            })
+        }
     </script>
     <style>
+        button{
+            border:1px solid black;
+            outline:none;
+            background-color: white;
+            padding: 5px;
+            padding-left:10px;
+            padding-right:10px;
+            border-radius: 0;
+        }
         .box{
             display:flex;
             flex-flow:row nowrap;
