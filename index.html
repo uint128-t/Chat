@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script>
-        var DISABLE_NOTIFICATIONS = true;
-        // set to true if HTTPS
-    </script>
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
     <dialog id="notif">
@@ -131,9 +127,9 @@
             msgelem.classList.add("message")
             ID("chat").appendChild(msgelem)
             ID("chat").scrollTop=ID("chat").scrollHeight
-            if (content.includes(ID("nName").value||guestid)){
+            if (content.includes('@'+ID("nName").value||guestid)){
                 msgelem.classList.add("mention")
-                if (!document.hasFocus() && Notification.permission=="granted" && !DISABLE_NOTIFICATIONS){
+                if (!document.hasFocus() && Notification.permission=="granted" && isSecureContext){
                     new Notification(`${user} mentioned you`,{body:content})
                 }
                 if (!document.hasFocus()){
@@ -143,9 +139,11 @@
             }
         })
 
-        document.addEventListener("focusin",()=>{
-            unread = 0
-            document.querySelector("title").innerText = "Chat"
+        document.addEventListener("visibilitychange",()=>{
+            if (document.hasFocus()){
+                unread = 0
+                document.querySelector("title").innerText = "Chat"
+            }
         })
         
         ID("nName").addEventListener("focusout",()=>{
@@ -154,7 +152,7 @@
         
         // desktop push notifications on mentions
 
-        if (Notification.permission=="default" && !DISABLE_NOTIFICATIONS){
+        if (Notification.permission=="default" && isSecureContext){
             ID("notif").showModal()
         }
         function allowNotifications(){
