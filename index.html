@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
     <dialog id="notif">
@@ -15,6 +16,7 @@
         <div style="text-align: right;">
             <br>
             <button onclick="allowNotifications()">Select Yes/No</button>
+            <button onclick="ID('notif').close()">Close</button>
         </div>
     </dialog>
     <div id="main">
@@ -23,16 +25,19 @@
                 <!--chat content-->
                 Welcome to chat.<br>
                 Type /join &lt;roomname&gt; to join a room.<br>
-                Type /clear to clear the chat.
+                Type /clear to clear the chat.<br>
+                You can upload, drag & drop or paste images.
                 <br><br>
             </div>
             <div id="attachments" style="visibility:hidden"></div>
             <div id="users"></div>
         </div>
         <div class="box" id="input">
-            <textarea id="chatBox" class="text-box" placeholder="Send a message..."></textarea>
+            <input type="file" id="upload" class="uplicon" style="opacity:0;position:absolute;" accept="image/*" multiple/>
+            <div class="uplicon">+</div>
+            <textarea id="chatmsg" placeholder="Send a message..."></textarea>
             Name:&nbsp;
-            <input type="text" id="nName" placeholder="Name" class="nName">
+            <input type="text" id="dname" placeholder="Name" class="dname">
             Room:&nbsp;
             <span id="room">main</span>
             <button id="send">
@@ -42,140 +47,5 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <script src="script.js"></script>
-    <style>
-        button{
-            border:1px solid black;
-            outline:none;
-            background-color: white;
-            padding: 5px;
-            padding-left:10px;
-            padding-right:10px;
-            border-radius: 0;
-        }
-        .box{
-            display:flex;
-            flex-flow:row nowrap;
-            border: 1px solid #000000;
-            border-radius: 10px;
-            align-items: center;
-            padding-right: 10px;
-        }
-        .text-box{
-            height: 40px;
-            flex-grow:1;
-            line-height: 20px;
-            padding:10px;
-        }
-        #send{
-            width:20px;
-            height:20px;
-            display:block;
-            box-sizing: border-box;
-            border:none;
-            outline:none;
-            background: transparent;
-            padding:0;
-            margin:0;
-            margin-right: 2px;
-        }
-        .nName{
-            width: 100px;
-            margin-right: 5px;
-        }
-        textarea {
-            background-color: transparent;
-            resize: none;
-            outline: none;
-            box-sizing: border-box;
-            border:none;
-            outline:none;
-            padding:0;
-            margin:0;
-        }
-        #room{
-            margin-right: 5px;
-        }
-        #main{
-            display:flex;
-            flex-flow:column nowrap;
-            height:100%;
-        }
-        #content{
-            flex-grow:1;
-            position:relative;
-            height:100%;
-            overflow-y: hidden;
-        }
-        #chat{
-            height:100%;
-            overflow-y: scroll;
-        }
-        body{
-            height:100vh;
-            box-sizing: border-box;
-            margin:0;
-        }
-        p{
-            padding:0;
-            margin:0;
-        }
-        .message{
-            margin-bottom: 10px;
-        }
-        #users{
-            position:absolute;
-            bottom:0;
-            right:15px;
-            border:1px solid black;
-            width:250px;
-            height:100px;
-            padding:10px;
-            background-color: white;
-            z-index: 999;
-        }
-        #attachments{
-            position:absolute;
-            bottom:0;
-            left:10px;
-            border:1px solid black;
-            width:calc(100% - 340px);
-            height:100px;
-            padding:10px;
-            background-color: white;
-            z-index: 999;
-            display:flex;
-            flex-flow:row nowrap;
-            justify-content: flex-start;
-            align-items:top;
-            overflow-x:auto;
-        }
-        #users::before{
-            content:"Users in this room:";
-            display:block;
-            font-weight: bold;
-        }
-        .mention{
-            background-color: #ffaa0050;
-        }
-        .upload{
-            border: 1px solid black;
-            max-width: 50vw;
-            display:block;
-        }
-        .attachment{
-            margin-right: 5px;
-            user-drag: none;
-            -webkit-user-drag: none;
-            user-select: none;
-            -moz-user-select: none;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            flex-shrink: 0;
-            border:1px solid black;
-        }
-        .attachment:hover{
-            cursor:pointer;
-        }
-    </style>
 </body>
 </html>

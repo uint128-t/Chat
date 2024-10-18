@@ -17,29 +17,30 @@ if HTTPS:
 def kw(**kw):
     return kw
 
-usrroom = {}
-roomnames = defaultdict(dict) # room name -> users (sid -> name)
+usrroom = {} # sid -> room
+usrname = {} # sid -> name
 
 @sock.on("smessage")
 def msg(o):
     content = o['message']
     user = o['user']
-    room = o["room"]
     img = []
     if 'images' in o:
         img = o['images']
-    print(f"{user} ({flask.request.sid}) in {room}:")
+    print(f"{user} ({flask.request.sid}) in {usrroom[flask.request.sid]}:")
     print("\x1b[2m",end=content)
     print("\x1b[0m")
-    emit("message",kw(user=user,content=content,room=room,images=img),broadcast=True,include_self=True,room=room)
+    emit("message",kw(user=user,content=content,images=img),broadcast=True,include_self=True,room=usrroom[flask.request.sid])
+
+def namesinroom(room)->list:
+    return list(map(usrname.__getitem__,filter(lambda x:usrroom[x] == room,usrroom)))
 
 @sock.on("disconnect")
 def disconnect():
-    emit("message",kw(user="SYSTEM",content=f"**{roomnames[usrroom[flask.request.sid]][flask.request.sid]}** disconnected.",images=[],room=usrroom[flask.request.sid]),broadcast=True,room=usrroom[flask.request.sid])
-    del roomnames[usrroom[flask.request.sid]][flask.request.sid]
-    emit("user",list(roomnames[usrroom[flask.request.sid]].values()),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
-    if len(roomnames[usrroom[flask.request.sid]]) == 0:
-        del roomnames[usrroom[flask.request.sid]]
+    emit("message",kw(user="SYSTEM",content=f"**{usrname[flask.request.sid]}** disconnected.",images=[],room=usrroom[flask.request.sid]),broadcast=True,room=usrroom[flask.request.sid])
+    curroom = list(filter(lambda x:usrroom[x] == usrroom[flask.request.sid],usrroom))
+    emit("user",curroom,room=usrroom[flask.request.sid],broadcast=True,include_self=True)
+    del usrname[flask.request.sid]
     del usrroom[flask.request.sid]
 
 @app.route("/")
@@ -52,23 +53,28 @@ def file(file):
 
 @sock.on("name")
 def name(nname):
-    roomnames[usrroom[flask.request.sid]][flask.request.sid] = nname
-    emit("user",list(roomnames[usrroom[flask.request.sid]].values()),room=usrroom[flask.request.sid],broadcast=True,include_self=True) # update
+    usrname[flask.request.sid] = nname
+    emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True) # update
+    print(usrname)
+
+@sock.on("init")
+def init(name):
+    usrname[flask.request.sid] = name
+    usrroom[flask.request.sid] = "main"
+    join_room("main")
+    emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
 
 @sock.on("room")
 def room(o):
     r = o["room"]
-    print(f"{r}")
-    if flask.request.sid in usrroom:
-        del roomnames[usrroom[flask.request.sid]][flask.request.sid]
-        emit("user",list(roomnames[usrroom[flask.request.sid]].values()),room=usrroom[flask.request.sid],broadcast=True,include_self=True) # leave previous
-        if len(roomnames[usrroom[flask.request.sid]]) == 0:
-            del roomnames[usrroom[flask.request.sid]]
-        leave_room(usrroom[flask.request.sid])
-    join_room(r)
-    roomnames[r][flask.request.sid] = o["name"]
+
+    oldroom = usrroom[flask.request.sid]
     usrroom[flask.request.sid] = r
-    emit("user",list(roomnames[usrroom[flask.request.sid]].values()),room=usrroom[flask.request.sid],broadcast=True,include_self=True) # join new
+    emit("user",namesinroom(oldroom),room=oldroom,broadcast=True,include_self=True)
+    leave_room(oldroom)
+    join_room(r)
+    emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
+    print(usrroom)
 
 @app.after_request
 def add_header(r): # best source of confusion
