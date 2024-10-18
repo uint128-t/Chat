@@ -9,8 +9,10 @@ app = flask.Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 sock = SocketIO(app)
 
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-context.load_cert_chain('cert.pem', 'key.pem')
+HTTPS = False
+if HTTPS:
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain('cert.pem', 'key.pem')
 
 def kw(**kw):
     return kw
@@ -73,9 +75,8 @@ def add_header(r): # best source of confusion
     return r    
 
 print("run")
-# listener = eventlet.wrap_ssl(eventlet.listen(('0.0.0.0', 443)),
-#                                certfile='cert.pem',
-#                                keyfile='key.pem',
-#                                server_side=True)
-# eventlet.wsgi.server(listener, app)
-sock.run(app,host="0.0.0.0",port=80)
+if HTTPS:
+    listener = eventlet.wrap_ssl(eventlet.listen(('0.0.0.0', 443)),certfile='cert.pem',keyfile='key.pem',server_side=True)
+    eventlet.wsgi.server(listener, app)
+else:
+    sock.run(app,host="0.0.0.0",port=80)

@@ -148,10 +148,8 @@
             document.querySelector("title").innerText = "Chat"
         })
         
-        ID("nName").addEventListener("visibilitychange",()=>{
-            if (document.hasFocus()){
-                socket.emit("name",ID("nName").value||guestid)
-            }
+        ID("nName").addEventListener("focusout",()=>{
+            socket.emit("name",ID("nName").value||guestid)
         })
         
         // desktop push notifications on mentions
