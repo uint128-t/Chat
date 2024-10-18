@@ -139,6 +139,9 @@
                 if (document.visibilityState!="visible"){
                     unread++
                     document.title = `Chat (${unread})`
+                    if (navigator.setAppBadge){
+                        navigator.setAppBadge(unread)
+                    }
                 }
             }
         })
@@ -147,6 +150,9 @@
             if (document.visibilityState=="visible"){
                 unread = 0
                 document.title = "Chat"
+                if (navigator.setAppBadge){
+                    navigator.clearAppBadge(unread)
+                }
             }
         })
         
