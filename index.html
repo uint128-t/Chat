@@ -115,7 +115,7 @@
             msgelem.innerHTML += parsed // sorry
             msgelem.classList.add("message")
             ID("chat").appendChild(msgelem)
-            ID("content").scrollTop=0
+            ID("chat").scrollTop=ID("chat").scrollHeight
             if (content.includes(ID("nName").value||guestid)){
                 msgelem.classList.add("mention")
                 if (!document.hasFocus()){
@@ -139,7 +139,7 @@
             border: 1px solid #000000;
             border-radius: 10px;
             align-items: center;
-            /* padding:10px; */
+            padding-right: 10px;
         }
         .text-box{
             height: 40px;
@@ -184,6 +184,12 @@
         #content{
             flex-grow:1;
             position:relative;
+            height:100%;
+            overflow-y: hidden;
+        }
+        #chat{
+            height:100%;
+            overflow-y: scroll;
         }
         body{
             height:100vh;
@@ -200,11 +206,13 @@
         #users{
             position:absolute;
             bottom:0;
-            right:10px;
+            right:15px;
             border:1px solid black;
             width:250px;
             height:100px;
             padding:10px;
+            background-color: white;
+            z-index: 999;
         }
         #users::before{
             content:"Users in this room:";
