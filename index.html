@@ -21,7 +21,12 @@
         <div class="content" id="content">
             <div id="chat">
                 <!--chat content-->
+                Welcome to chat.<br>
+                Type /join &lt;roomname&gt; to join a room.<br>
+                Type /clear to clear the chat.
+                <br><br>
             </div>
+            <div id="attachments" style="visibility:hidden"></div>
             <div id="users"></div>
         </div>
         <div class="box" id="input">
@@ -36,141 +41,7 @@
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
-    <script type="text/javascript" charset="utf-8">
-        var pressedKeys = {};
-        window.onkeyup = function(e) { pressedKeys[e.keyCode] = false; }
-        window.onkeydown = function(e) { pressedKeys[e.keyCode] = true; }
-
-        var socket = io();
-        var ID = document.getElementById.bind(document)
-        var room = "main"
-        var reader = new commonmark.Parser();
-        var writer = new commonmark.HtmlRenderer({safe:true});
-        var guestid = ""
-        var unread = 0;
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-        socket.on('connect', ()=>{
-            guestid = "Guest "+socket.io.engine.id.substring(0,5);
-            ID("chat").appendChild(document.createElement("div")).innerText = "Connected! \nType /join <room name> to join a room. \nIf it doesn\'t exist, it will be created.\n"
-            socket.emit('room',{room:"main",name:ID("nName").value||guestid})
-            socket.emit("smessage",{message:`**${ID("nName").value||guestid}** connected.`,user:"SYSTEM",room:room})
-        })
-        window.addEventListener("beforeunload",(e)=>{
-            socket.emit("smessage",{message:`**${ID("nName").value||guestid}** disconnected.`,user:"SYSTEM",room:room})
-        })
-        socket.on("disconnect",()=>{
-            ID("chat").appendChild(document.createElement("div")).innerText = "Connection lost."
-        })
-        send = ()=>{
-            let n=ID("chatBox").value.trim()
-            let u=ID("nName").value.trim()||guestid
-            if (!n){
-                return
-            }
-            if (n=="/clear"){
-                ID("chat").innerHTML="<i>Chat was cleared</i><br><br>"
-                ID("chatBox").value = ""
-                return
-            }
-            if (pressedKeys[16]){
-                return
-            }
-            if (u=="SYSTEM"){
-                ID("chat").appendChild(document.createElement("div")).innerText = "You cannot send messages as SYSTEM"
-                ID("chatBox").value = ""
-                return
-            }
-            if (n.startsWith("/join ")){
-                socket.emit("smessage",{message:`**${u}** left the room.`,user:"SYSTEM",room:room})
-                socket.emit('room',{room:n.substring(6),name:u})
-                room = n.substring(6)
-                ID("room").innerText = room
-                socket.emit("smessage",{message:`**${u}** entered the room.`,user:"SYSTEM",room:room})
-                ID("chatBox").value=""
-                return
-            }
-            socket.emit("smessage",{message:n,user:u,room:room})
-            ID("chatBox").value=""
-        }
-        window.onload=()=>{
-            ID("send").onclick = ()=>{
-                send()
-            }
-            ID("chatBox").addEventListener("keydown", (e) => {
-                if (e.key === "Enter") {
-                    if (!pressedKeys[16]){
-                        e.preventDefault()
-                        send()
-                    }
-                }
-            })
-        }
-        socket.on("user",(us)=>{
-            ID("users").innerText = us.join(", ")
-        })
-
-        function escapeRegExp(text) {
-            return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-        }
-
-        socket.on("message",(m)=>{
-            let content = m.content
-            var parsed = writer.render(reader.parse(escapeHtml(content)))
-            let user = m.user
-            let msgelem = document.createElement("div")
-            msgelem.appendChild(document.createElement("b")).innerText = user+":"
-            msgelem.innerHTML += parsed // sorry
-            msgelem.classList.add("message")
-            ID("chat").appendChild(msgelem)
-            ID("chat").scrollTop=ID("chat").scrollHeight
-            let reusr = new RegExp(`\@${escapeRegExp(ID("nName").value||guestid)}(\\W|$)`,"mi")
-            if (reusr.test(content)){
-                msgelem.classList.add("mention")
-                if (document.visibilityState!="visible" && Notification.permission=="granted" && isSecureContext){
-                    new Notification(`${user} mentioned you`,{body:content})
-                }
-                if (document.visibilityState!="visible"){
-                    unread++
-                    document.title = `Chat (${unread})`
-                    if (navigator.setAppBadge){
-                        navigator.setAppBadge(unread)
-                    }
-                }
-            }
-        })
-
-        document.addEventListener("visibilitychange",()=>{
-            if (document.visibilityState=="visible"){
-                unread = 0
-                document.title = "Chat"
-                if (navigator.setAppBadge){
-                    navigator.clearAppBadge(unread)
-                }
-            }
-        })
-        
-        ID("nName").addEventListener("focusout",()=>{
-            socket.emit("name",ID("nName").value||guestid)
-        })
-        
-        // desktop push notifications on mentions
-
-        if (Notification.permission=="default" && isSecureContext){
-            ID("notif").showModal()
-        }
-        function allowNotifications(){
-            Notification.requestPermission().then((act)=>{
-                ID("notif").removeAttribute("open")
-            })
-        }
-    </script>
+    <script src="script.js"></script>
     <style>
         button{
             border:1px solid black;
@@ -262,6 +133,22 @@
             background-color: white;
             z-index: 999;
         }
+        #attachments{
+            position:absolute;
+            bottom:0;
+            left:10px;
+            border:1px solid black;
+            width:calc(100% - 340px);
+            height:100px;
+            padding:10px;
+            background-color: white;
+            z-index: 999;
+            display:flex;
+            flex-flow:row nowrap;
+            justify-content: flex-start;
+            align-items:top;
+            overflow-x:auto;
+        }
         #users::before{
             content:"Users in this room:";
             display:block;
@@ -269,6 +156,25 @@
         }
         .mention{
             background-color: #ffaa0050;
+        }
+        .upload{
+            border: 1px solid black;
+            max-width: 50vw;
+            display:block;
+        }
+        .attachment{
+            margin-right: 5px;
+            user-drag: none;
+            -webkit-user-drag: none;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            flex-shrink: 0;
+            border:1px solid black;
+        }
+        .attachment:hover{
+            cursor:pointer;
         }
     </style>
 </body>

@@ -25,13 +25,17 @@ def msg(o):
     content = o['message']
     user = o['user']
     room = o["room"]
+    img = []
+    if 'images' in o:
+        img = o['images']
     print(f"{user} ({flask.request.sid}) in {room}:")
     print("\x1b[2m",end=content)
     print("\x1b[0m")
-    emit("message",kw(user=user,content=content,room=room),broadcast=True,include_self=True,room=room)
+    emit("message",kw(user=user,content=content,room=room,images=img),broadcast=True,include_self=True,room=room)
 
 @sock.on("disconnect")
 def disconnect():
+    emit("message",kw(user="SYSTEM",content=f"**{roomnames[usrroom[flask.request.sid]][flask.request.sid]}** disconnected.",images=[],room=usrroom[flask.request.sid]),broadcast=True,room=usrroom[flask.request.sid])
     del roomnames[usrroom[flask.request.sid]][flask.request.sid]
     emit("user",list(roomnames[usrroom[flask.request.sid]].values()),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
     if len(roomnames[usrroom[flask.request.sid]]) == 0:
