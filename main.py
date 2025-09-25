@@ -38,10 +38,10 @@ def namesinroom(room)->list:
 @sock.on("disconnect")
 def disconnect():
     emit("message",kw(user="SYSTEM",content=f"**{usrname[flask.request.sid]}** disconnected.",images=[],room=usrroom[flask.request.sid]),broadcast=True,room=usrroom[flask.request.sid])
-    curroom = list(filter(lambda x:usrroom[x] == usrroom[flask.request.sid],usrroom))
-    emit("user",curroom,room=usrroom[flask.request.sid],broadcast=True,include_self=True)
+    cr = usrroom[flask.request.sid]
     del usrname[flask.request.sid]
     del usrroom[flask.request.sid]
+    emit("user",namesinroom(cr),room=cr,broadcast=True,include_self=True)
 
 @app.route("/")
 def root():

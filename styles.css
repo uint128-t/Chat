@@ -1,0 +1,159 @@
+button {
+    border: 1px solid black;
+    outline: none;
+    background-color: white;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 0;
+}
+
+.box {
+    display: flex;
+    flex-flow: row nowrap;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    align-items: center;
+    padding-right: 10px;
+}
+
+#chatmsg {
+    height: 40px;
+    flex-grow: 1;
+    line-height: 20px;
+    padding: 10px;
+    padding-left: 0;
+}
+
+#send {
+    width: 20px;
+    height: 20px;
+    display: block;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    margin-right: 2px;
+}
+
+.dname {
+    width: 100px;
+    margin-right: 5px;
+}
+
+textarea {
+    background-color: transparent;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+#room {
+    margin-right: 5px;
+}
+
+#main {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
+}
+
+#content {
+    flex-grow: 1;
+    position: relative;
+    height: 100%;
+    overflow-y: hidden;
+}
+
+#chat {
+    height: 100%;
+    overflow-y: scroll;
+}
+
+body {
+    height: 100vh;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+p {
+    padding: 0;
+    margin: 0;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+#users {
+    position: absolute;
+    bottom: 0;
+    right: 15px;
+    border: 1px solid black;
+    width: 250px;
+    height: 100px;
+    padding: 10px;
+    background-color: white;
+    z-index: 999;
+}
+
+#attachments {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+    border: 1px solid black;
+    width: calc(100% - 340px);
+    height: 100px;
+    padding: 10px;
+    background-color: white;
+    z-index: 999;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    align-items: top;
+    overflow-x: auto;
+}
+
+.mention {
+    background-color: #ffaa0050;
+}
+
+.upload {
+    border: 1px solid black;
+    max-width: 50vw;
+    display: block;
+}
+
+.attachment {
+    margin-right: 5px;
+    user-drag: none;
+    -webkit-user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    flex-shrink: 0;
+    border: 1px solid black;
+}
+
+.attachment:hover {
+    cursor: pointer;
+}
+
+.uplicon {
+    width: 20px;
+    height: 20px;
+    margin: 10px;
+    text-align: center;
+    line-height: 20px;
+    border-radius: 50%;
+    background-color: black;
+    color: white;
+    user-select: none;
+}
