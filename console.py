@@ -43,4 +43,4 @@ def process_command(cmd):
 def log(text):
     print(end="\0337",flush=True)
     print("\r\x1b[2K"+text,flush=True)
-    print(">>",readline.get_line_buffer(),end="\0338",flush=True)
+    print(">>",readline.get_line_buffer(),end="\0338\033[B",flush=True)
