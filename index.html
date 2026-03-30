@@ -22,21 +22,29 @@
     </dialog>
     <div id="main">
         <div class="content" id="content">
-            <div id="chat">
-                <!--chat content-->
-                Welcome to chat.<br>
-                Type /join &lt;roomname&gt; to join a room.<br>
-                Type /clear to clear the chat.<br>
-                You can upload, drag & drop or paste images.
-                <br><br>
+            <div style="display:flex;flex-flow:row nowrap;height:100%;">
+                <div id="chat">
+                    <!--chat content-->
+                    Welcome to chat.<br>
+                    Type /join &lt;roomname&gt; to join a room.<br>
+                    Type /clear to clear the chat.<br>
+                    You can upload, drag & drop or paste images.
+                    <br><br>
+                </div>
+                <div id="users">
+                    <b style="font-size:20px;">
+                        Room: <span id="room">main</span>
+                    </b>
+                    <br>
+                    Name:&nbsp;
+                    <input type="text" id="dname" placeholder="Name" class="dname">
+                    <br>
+                    <br>
+                    Connected users in room:
+                    <div id="userlist"></div>
+                </div>
             </div>
             <div id="attachments" style="visibility:hidden"></div>
-            <div id="users">
-                <b>
-                    Users in room <span id="room">main</span>
-                </b>
-                <div id="userlist"></div>
-            </div>
             <div id="editing">
                 <div style="flex-grow:1;">Editing message</div>
                 <div id="editclose" onclick="editclose()">×</div>
@@ -46,8 +54,6 @@
             <input type="file" id="upload" class="uplicon" style="opacity:0;position:absolute;width:40px;height:40px;margin:0;border-radius:0;" accept="image/*" multiple/>
             <div class="uplicon">+</div>
             <textarea id="chatmsg" placeholder="Send a message..."></textarea>
-            Name:&nbsp;
-            <input type="text" id="dname" placeholder="Name" class="dname">
             <button id="send">
                 <img src="paper-plane.svg" height="20" width="20">
             </button>

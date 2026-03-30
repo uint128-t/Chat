@@ -4,6 +4,7 @@ var room = "main"
 var reader = new commonmark.Parser();
 var writer = new commonmark.HtmlRenderer({ safe: true });
 var guestid = ""
+var username;
 var unread = 0
 var images = []
 var sendID = Date.now()
@@ -64,7 +65,8 @@ socket.on('connect', () => {
     let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 1
     guestid = "Guest " + socket.io.engine.id.substring(0, 5);
     ID("chat").appendChild(document.createElement("div")).textContent = "Connected to server!"
-    socket.emit("init", ID("dname").value || guestid)
+    username = ID("dname").value || guestid;
+    socket.emit("init", username);
     if (isbottom) {
         ID("chat").scrollTop = ID("chat").scrollHeight
     }
@@ -161,7 +163,7 @@ socket.on("message", (m) => {
         }
         msgelem.appendChild(document.createElement("div")).innerHTML = parsed;
     }
-    let reusr = new RegExp(`\@${escapeRegExp(ID("dname").value || guestid)}(\\W|$)`, "mi")
+    let reusr = new RegExp(`\@${escapeRegExp(username)}(\\W|$)`, "mi")
     if (reusr.test(content) || /\@everyone(\W|$)/.test(content)){
         msgelem.classList.add("mention")
         if (document.visibilityState != "visible" && Notification.permission == "granted" && isSecureContext) {
@@ -208,7 +210,8 @@ document.addEventListener("visibilitychange", () => {
 })
 
 ID("dname").addEventListener("focusout", () => {
-    socket.emit("name", ID("dname").value || guestid)
+    username = ID("dname").value || guestid;
+    socket.emit("name", username);
     localStorage.setItem("name", ID("dname").value)
 })
 

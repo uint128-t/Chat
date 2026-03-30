@@ -56,6 +56,9 @@ textarea {
 
 #room {
     margin-right: 5px;
+    font-family:monospace;
+    background-color: #ddd;
+    padding: 5px;
 }
 
 #main {
@@ -74,8 +77,12 @@ textarea {
 #chat {
     height: 100%;
     overflow-y: scroll;
-    border-bottom:10px solid transparent;
+    padding-bottom: 10px;
+    padding-right: 10px;
     box-sizing:border-box;
+    flex-grow:1;
+    border-right:1px solid black;
+    overflow-wrap: anywhere;
 }
 
 body {
@@ -97,15 +104,9 @@ p {
 }
 
 #users {
-    position: absolute;
-    top: 0;
-    right: 15px;
-    border: 1px solid black;
-    width: 250px;
-    height: 100px;
-    padding: 10px;
-    background-color: white;
-    z-index: 999;
+    width:250px;
+    margin:20px;
+    flex-shrink: 0;
 }
 #editing {
     position: absolute;
@@ -154,6 +155,7 @@ p {
 .upload {
     border: 1px solid black;
     max-width: 50vw;
+    max-height:50vh;
     display: block;
 }
 

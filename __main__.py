@@ -26,9 +26,12 @@ usrroom = {} # sid -> room
 usrname = {} # sid -> name
 useraddr = {}
 
-def system_message(content):
+def system_message(content,outside=False):
     global messagect
-    socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect),room=usrroom[flask.request.sid])
+    if outside:
+        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect))
+    else:
+        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect),room=usrroom[flask.request.sid])
     messagect+=1
 
 def address_hash(addr):
@@ -141,7 +144,7 @@ def command_kickname(pid=""):
             socket.server.disconnect(pidi)
 console.register_command("kickname",command_kickname)
 def command_say(*args):
-    system_message(" ".join(args))
+    system_message(" ".join(args),outside=True)
 console.register_command("say",command_say)
 def command_ban(ip):
     if len(ip.split("."))==4:
@@ -169,6 +172,9 @@ def command_list():
     for pid in userIDs:
         print(f"{pid}: {usrname.get(pid)} ({useraddr.get(pid)}), in {usrroom.get(pid)}")
 console.register_command("list",command_list)
+def command_js(*args):
+    socket.emit("js", " ".join(args))
+console.register_command("js",command_js)
 
 console.log("run")
 socket.start_background_task(console.processs_commands)
