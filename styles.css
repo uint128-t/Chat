@@ -108,6 +108,12 @@ p {
     width:250px;
     margin:20px;
     flex-shrink: 0;
+    display:flex;
+    flex-flow:column nowrap;
+}
+#userlist{
+    flex-grow:1;
+    overflow-y:scroll;
 }
 #editing {
     position: absolute;

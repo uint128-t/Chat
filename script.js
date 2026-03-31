@@ -2,7 +2,7 @@ var socket = io();
 var ID = document.getElementById.bind(document)
 var room = "main"
 var reader = new commonmark.Parser();
-var writer = new commonmark.HtmlRenderer({ safe: true });
+var writer = new commonmark.HtmlRenderer({ softbreak:"<br>"});
 var guestid = ""
 var username;
 var unread = 0
@@ -11,6 +11,7 @@ var sendID = Date.now()
 var editing = document.getElementById("editing")
 editing.style.visibility = "hidden";
 ID("dname").value = localStorage.getItem("name")
+
 function escapeHtml(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")
@@ -44,7 +45,6 @@ send = () => {
     if (n.startsWith("/join ")) {
         socket.emit('room', { room: n.substring(6) })
         room = n.substring(6)
-        ID("room").innerText = room
         ID("chatmsg").value = ""
         updateTextbox()
         return
@@ -57,7 +57,7 @@ send = () => {
     ID("chatmsg").value = ""
     updateTextbox()
     if (isbottom){
-        ID("chat").scrollTop = ID("chat").scrollHeight
+        ID("chat").scrollTop = 999999999
     }
 }
 
@@ -68,14 +68,14 @@ socket.on('connect', () => {
     username = ID("dname").value || guestid;
     socket.emit("init", username);
     if (isbottom) {
-        ID("chat").scrollTop = ID("chat").scrollHeight
+        ID("chat").scrollTop = 999999999
     }
 })
 socket.on("disconnect", () => {
     let isbottom = is_bottom()
     ID("chat").appendChild(document.createElement("div")).textContent = "Connection lost."
     if (isbottom) {
-        ID("chat").scrollTop = ID("chat").scrollHeight
+        ID("chat").scrollTop = 999999999
     }
 })
 socket.on("user", (us) => {
@@ -87,6 +87,9 @@ socket.on("user", (us) => {
         uif.textContent = `\xa0(${u[1].substring(0,8)} ${u[2]})`;
         uif.classList.add("small")
     }
+})
+socket.on("room",room=>{
+    ID("room").textContent = room
 })
 var lastUser = "";
 var favicon = ID("favicon");
@@ -132,7 +135,7 @@ socket.on("message", (m) => {
     let messageid = m.id
     let isbottom = is_bottom()
     console.log(isbottom)
-    var parsed = writer.render(reader.parse((content.replace(/\n/g,"\n\n"))))
+    var parsed = writer.render(reader.parse(content))
     let user = m.user
     let edit = document.getElementById("message-"+messageid)!=null
     let msgelem
@@ -148,7 +151,6 @@ socket.on("message", (m) => {
             msgelem.classList.add("message-cont");
         }
         lastUser = m.userid;
-        msgelem.appendChild(document.createElement("div")).innerHTML = parsed;
         msgelem.classList.add("message")
         if (m.userid == socket.id){
             msgelem.oncontextmenu=()=>{editmsg(messageid);return false}
@@ -166,8 +168,8 @@ socket.on("message", (m) => {
         if (!brk) {
             msgelem.classList.add("message-cont");
         }
-        msgelem.appendChild(document.createElement("div")).innerHTML = parsed;
     }
+    msgelem.appendChild(sanitizeHTML(parsed))
     let reusr = new RegExp(`\@${escapeRegExp(username)}(\\W|$)`, "mi")
     if (reusr.test(content) || /\@everyone(\W|$)/.test(content)){
         msgelem.classList.add("mention")
@@ -190,6 +192,7 @@ socket.on("message", (m) => {
         }
         let x = msgelem.appendChild(document.createElement(type))
         x.src = "data:"+img
+        x.setAttribute("sandbox","")
     }
     if (isbottom){
         ID("chat").scrollTop = 999999999;
@@ -232,7 +235,7 @@ function allowNotifications() {
 function updateImageList(){
     if (images.length){
         ID("attachments").style.visibility = "visible"
-        ID("attachments").innerHTML = ""
+        ID("attachments").replaceChildren()
         let i = 0
         for (let img of images){
             let type="iframe";

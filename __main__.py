@@ -26,12 +26,12 @@ usrroom = {} # sid -> room
 usrname = {} # sid -> name
 useraddr = {}
 
-def system_message(content,outside=False):
+def system_message(content,room=None):
     global messagect
-    if outside:
-        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect))
+    if room:
+        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect),room=room)
     else:
-        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect),room=usrroom[flask.request.sid])
+        socket.emit("message",kw(user="SYSTEM",content=content,images=[],id=messagect))
     messagect+=1
 
 def address_hash(addr):
@@ -71,8 +71,8 @@ def connect():
 def disconnect():
     if flask.request.sid not in usrname:
         return
-    system_message(f"**{usrname.get(flask.request.sid)}** disconnected.")
-    console.log(f"\x1b[31mDisconnected {usrname.get(flask.request.sid)} ({flask.request.sid})\x1b[0m")
+    system_message(f"**{usrname.get(flask.request.sid)}** disconnected.",room=usrroom[flask.request.sid])
+    console.log(f"\x1b[31mDisconnected: {usrname.get(flask.request.sid)} ({flask.request.sid})\x1b[0m")
     cr = usrroom[flask.request.sid]
     del usrname[flask.request.sid]
     del usrroom[flask.request.sid]
@@ -84,7 +84,7 @@ def disconnect():
 def root():
     if flask.request.remote_addr in bannedIPs:
         console.log(f"\x1b[31mBlocked loading from {flask.request.remote_addr}\x1b[0m")
-        return "You are banned."
+        return flask.send_file("banned.html")
     return flask.send_file("index.html")
 
 @app.route("/<file>")
@@ -102,25 +102,29 @@ def init(name):
     userIDs.add(flask.request.sid)
     usrname[flask.request.sid] = name
     usrroom[flask.request.sid] = "main"
-    console.log(f"\x1b[32mConnected {name} ({flask.request.sid}) from {flask.request.remote_addr}\x1b[0m")
+    console.log(f"\x1b[32mConnected: {name} ({flask.request.sid}) from {flask.request.remote_addr}\x1b[0m")
     useraddr[flask.request.sid] = flask.request.remote_addr
     join_room("main")
     emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
-    system_message(f"**{usrname[flask.request.sid]}** connected.")
+    system_message(f"**{usrname[flask.request.sid]}** connected.",room=usrroom[flask.request.sid])
+
+def user_move(user,room):
+    oldroom = usrroom[user]
+    usrroom[user] = room
+    socket.emit("user",namesinroom(oldroom),room=oldroom)
+    system_message(f"**{usrname[user]}** left the room.",room=oldroom)
+    with app.app_context():
+        leave_room(oldroom,sid=user,namespace="/")
+        join_room(room,sid=user,namespace="/")
+    socket.emit("user",namesinroom(room),room=room)
+    system_message(f"**{usrname[user]}** entered the room.",room=room)
+    socket.emit("room",room,to=user)
+    console.log(f"\x1b[34mUser {usrname[flask.request.sid]} ({flask.request.sid}) moved to {r}\x1b[0m")
 
 @socket.on("room")
 def room(o):
     r = o["room"]
-
-    oldroom = usrroom[flask.request.sid]
-    usrroom[flask.request.sid] = r
-    socket.emit("user",namesinroom(oldroom),room=oldroom)
-    system_message(f"**{usrname[flask.request.sid]}** left the room.")
-    leave_room(oldroom)
-    join_room(r)
-    socket.emit("user",namesinroom(r),room=r)
-    system_message(f"**{usrname[flask.request.sid]}** entered the room.")
-
+    user_move(flask.request.sid,r)
 
 @app.after_request
 def add_header(r): # best source of confusion
@@ -144,7 +148,7 @@ def command_kickname(pid=""):
             socket.server.disconnect(pidi)
 console.register_command("kickname",command_kickname)
 def command_say(*args):
-    system_message(" ".join(args),outside=True)
+    system_message(" ".join(args))
 console.register_command("say",command_say)
 def command_ban(ip):
     if len(ip.split("."))==4:
@@ -165,9 +169,6 @@ def command_unban(ip):
     bannedIPs.discard(ip)
     bannedIPs.discard("::ffff:"+ip)
 console.register_command("unban",command_unban)
-def command_exit():
-    sys.exit(0)
-console.register_command("exit",command_exit)
 def command_list():
     for pid in userIDs:
         print(f"{pid}: {usrname.get(pid)} ({useraddr.get(pid)}), in {usrroom.get(pid)}")
@@ -175,6 +176,16 @@ console.register_command("list",command_list)
 def command_js(*args):
     socket.emit("js", " ".join(args))
 console.register_command("js",command_js)
+def command_move(userid,*room):
+    room = " ".join(room)
+    for pid in userIDs:
+        if pid.startswith(userid):
+            user_move(pid,room)
+            print(f"moved {pid} to {room}")
+console.register_command("move",command_move)
+def command_exit():
+    sys.exit(0)
+console.register_command("exit",command_exit)
 
 console.log("run")
 socket.start_background_task(console.processs_commands)

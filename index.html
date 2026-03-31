@@ -35,12 +35,13 @@
                     <b style="font-size:20px;">
                         Room: <span id="room">main</span>
                     </b>
-                    <br>
-                    Name:&nbsp;
-                    <input type="text" id="dname" placeholder="Name" class="dname">
-                    <br>
-                    <br>
-                    Connected users in room:
+                    <div style="display:flex;flex-flow:row nowrap;align-items: center;">
+                        Name:&nbsp;
+                        <input type="text" id="dname" placeholder="Name" class="dname" style="flex-grow:1;">
+                    </div>
+                    <div style="margin-top:20px;">
+                        Connected users in room:
+                    </div>
                     <div id="userlist"></div>
                 </div>
             </div>
@@ -55,11 +56,12 @@
             <div class="uplicon">+</div>
             <textarea id="chatmsg" placeholder="Send a message..."></textarea>
             <button id="send">
-                <img src="paper-plane.svg" height="20" width="20">
+                <img src="send.svg" height="20" width="20">
             </button>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="sanitize.js"></script>
     <script src="script.js"></script>
     <script>
         function isuser(user){
