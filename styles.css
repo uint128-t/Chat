@@ -98,6 +98,7 @@ p {
 
 .message {
     margin-top: 10px;
+    word-wrap: break-word;
 }
 .message-cont {
     margin-top: 0;
@@ -198,4 +199,13 @@ p {
 iframe.upload{
     width:50vw;
     height:50vh;
+}
+
+img{
+    max-width:50vw;
+    max-height:50vh;
+}
+
+pre {
+    white-space: pre-wrap;
 }

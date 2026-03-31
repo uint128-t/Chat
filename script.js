@@ -29,7 +29,7 @@ function editmsg(id){
 }
 
 send = () => {
-    let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 1
+    let isbottom = is_bottom()
     let n = ID("chatmsg").value.trim()
     if (!n && !images.length) {
         return
@@ -62,7 +62,7 @@ send = () => {
 }
 
 socket.on('connect', () => {
-    let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 1
+    let isbottom = is_bottom()
     guestid = "Guest " + socket.io.engine.id.substring(0, 5);
     ID("chat").appendChild(document.createElement("div")).textContent = "Connected to server!"
     username = ID("dname").value || guestid;
@@ -72,7 +72,7 @@ socket.on('connect', () => {
     }
 })
 socket.on("disconnect", () => {
-    let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 1
+    let isbottom = is_bottom()
     ID("chat").appendChild(document.createElement("div")).textContent = "Connection lost."
     if (isbottom) {
         ID("chat").scrollTop = ID("chat").scrollHeight
@@ -123,10 +123,15 @@ function editclose(){
     sendID = Date.now()
 }
 
+function is_bottom(){
+    return ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 100
+}
+
 socket.on("message", (m) => {
     let content = m.content
     let messageid = m.id
-    let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 100
+    let isbottom = is_bottom()
+    console.log(isbottom)
     var parsed = writer.render(reader.parse((content.replace(/\n/g,"\n\n"))))
     let user = m.user
     let edit = document.getElementById("message-"+messageid)!=null
@@ -185,7 +190,6 @@ socket.on("message", (m) => {
         }
         let x = msgelem.appendChild(document.createElement(type))
         x.src = "data:"+img
-        x.classList.add("upload")
     }
     if (isbottom){
         ID("chat").scrollTop = 999999999;
@@ -270,7 +274,7 @@ document.onpaste = (e) => {
 }
 
 function updateTextbox() {
-    let isbottom = ID("chat").scrollHeight - ID("chat").scrollTop - ID("chat").clientHeight < 1
+    let isbottom = is_bottom()
     ID("chatmsg").style.height = '40px'; // Reset the height
     ID("chatmsg").style.height = `min(${ID("chatmsg").scrollHeight}px,10lh)`; // Adjust height based on content
     if (isbottom){
