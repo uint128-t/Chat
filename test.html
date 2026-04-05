@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <iframe id="grdg" sandbox="allow-same-origin"></iframe>
+    <script>
+        let messageframe = document.getElementById("grdg")
+        messageframe.setAttribute("sandbox", "allow-same-origin")
+        messageframe.onload = ()=>{
+            let b = messageframe.contentDocument.body.appendChild(document.createElement("button"))
+            b.textContent = "gdrg"
+            b.setAttribute("onclick","alert(1)")
+        }
+    </script>
+</body>
+</html>

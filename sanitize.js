@@ -1,23 +1,15 @@
+var HTMLClean;
 function HTMLCopySafe(inelem,outelem){
     // Copies the input element to the output element
     let node_tag = inelem.tagName
-    if ("SCRIPT STYLE IFRAME SVG MATH OBJECT EMBED META LINK BASE".split(" ").includes(node_tag)){
-        return
+    if (!("A B I U P BR HR H1 H2 H3 H4 H5 H6 CODE DEL STRONG INS EM SPAN DIV TABLE TR TD TH TBODY BODY LI UL OL S WBR".split(" ").includes(node_tag))){
+        HTMLClean = false
+        console.log(node_tag)
     }
     let curelem = document.createElement(node_tag)
     for (let attr of inelem.attributes){
-        if (
-            attr.name.startsWith("on")||
-            "id srcset srcdoc ping".split(" ").includes(attr.name)
-        ){
-            continue
-        }
-        if ("href src action formaction xlink:href".split(" ").includes(attr.name)){
-            if (!attr.value.startsWith("http")){
-                continue
-            }
-        }
         curelem.setAttribute(attr.name,attr.value)
+        HTMLClean = false
     }
     outelem.appendChild(curelem)
     for (let child of inelem.childNodes){
@@ -29,6 +21,7 @@ function HTMLCopySafe(inelem,outelem){
     }
 }
 function sanitizeHTML(html){
+    HTMLClean = true;
     const parsed = new DOMParser().parseFromString(html,"text/html").body
     let output = document.createElement("div")
     HTMLCopySafe(parsed,output)

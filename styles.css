@@ -215,3 +215,11 @@ img{
 pre {
     white-space: pre-wrap;
 }
+.messageframe{
+    width:100%;
+    border:0;
+    outline:none;
+    margin:0;
+    padding:0;
+    height:0;
+}

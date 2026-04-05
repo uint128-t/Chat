@@ -8,9 +8,12 @@ var username;
 var unread = 0
 var images = []
 var sendID = Date.now()
-var editing = document.getElementById("editing")
+var editing = ID("editing")
 editing.style.visibility = "hidden";
-ID("dname").value = localStorage.getItem("name")
+ID("dname").value = localStorage.getItem("name");
+(async()=>{
+    window.messageCss = await fetch("message.css").then(r=>r.text())
+})()
 
 function escapeHtml(unsafe) {
     return unsafe
@@ -26,6 +29,8 @@ function escapeRegExp(text) {
 
 function editmsg(id){
     sendID=id;
+    ID("chatmsg").value=ID("message-"+id).getAttribute("data-content")
+    updateTextbox()
     editing.style.visibility = "visible";
 }
 
@@ -134,10 +139,9 @@ socket.on("message", (m) => {
     let content = m.content
     let messageid = m.id
     let isbottom = is_bottom()
-    console.log(isbottom)
     var parsed = writer.render(reader.parse(content))
     let user = m.user
-    let edit = document.getElementById("message-"+messageid)!=null
+    let edit = ID("message-"+messageid)!=null
     let msgelem
     if (!edit){
         msgelem = document.createElement("div")
@@ -157,9 +161,11 @@ socket.on("message", (m) => {
         }
         ID("chat").appendChild(msgelem)
         msgelem.setAttribute("data-sender", m.userid)
+        msgelem.setAttribute("data-content",content)
     } else{
-        msgelem = document.getElementById("message-"+messageid)
+        msgelem = ID("message-"+messageid)
         msgelem.classList.add("edited")
+        msgelem.setAttribute("data-content",content)
         if (msgelem.getAttribute("data-sender") != m.userid){
             return console.log("edit mismatch");
         }
@@ -169,7 +175,23 @@ socket.on("message", (m) => {
             msgelem.classList.add("message-cont");
         }
     }
-    msgelem.appendChild(sanitizeHTML(parsed))
+    let sanitized = sanitizeHTML(parsed)
+    console.log(HTMLClean)
+    if (HTMLClean){
+        msgelem.appendChild(sanitized)
+    } else{
+        let messageframe = document.createElement("iframe")
+        messageframe.setAttribute("sandbox","allow-same-origin")
+        messageframe.classList.add("messageframe")
+        messageframe.onload = ()=>{
+            messageframe.contentDocument.body.replaceChildren(sanitized)
+            console.log(parsed)
+            messageframe.contentDocument.body.appendChild(document.createElement("style")).textContent = messageCss
+            messageframe.style.height = Math.min(500,messageframe.contentDocument.documentElement.scrollHeight)+1+"px";
+            if (isbottom) ID("chat").scrollTop = 999999999;
+        }
+        msgelem.appendChild(messageframe)
+    }
     let reusr = new RegExp(`\@${escapeRegExp(username)}(\\W|$)`, "mi")
     if (reusr.test(content) || /\@everyone(\W|$)/.test(content)){
         msgelem.classList.add("mention")
