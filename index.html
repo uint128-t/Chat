@@ -32,17 +32,24 @@
                     <br><br>
                 </div>
                 <div id="users">
-                    <b style="font-size:20px;">
-                        Room: <span id="room">main</span>
-                    </b>
-                    <div style="display:flex;flex-flow:row nowrap;align-items: center;">
-                        Name:&nbsp;
-                        <input type="text" id="dname" placeholder="Name" class="dname" style="flex-grow:1;">
+                    <button class="menu" onclick="ID('users').classList.toggle('close')">
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                    </button>
+                    <div id="subusers">
+                        <b style="font-size:20px;">
+                            Room: <span id="room">main</span>
+                        </b>
+                        <div style="display:flex;flex-flow:row nowrap;align-items: center;">
+                            Name:&nbsp;
+                            <input type="text" id="dname" placeholder="Name" class="dname" style="flex-grow:1;">
+                        </div>
+                        <div style="margin-top:20px;">
+                            Connected users in room:
+                        </div>
+                        <div id="userlist"></div>
                     </div>
-                    <div style="margin-top:20px;">
-                        Connected users in room:
-                    </div>
-                    <div id="userlist"></div>
                 </div>
             </div>
             <div id="attachments" style="visibility:hidden"></div>

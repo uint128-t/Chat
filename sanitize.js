@@ -2,7 +2,7 @@ var HTMLClean;
 function HTMLCopySafe(inelem,outelem){
     // Copies the input element to the output element
     let node_tag = inelem.tagName
-    if (!("A B I U P BR HR H1 H2 H3 H4 H5 H6 CODE DEL STRONG INS EM SPAN DIV TABLE TR TD TH TBODY BODY LI UL OL S WBR".split(" ").includes(node_tag))){
+    if (!("HTML HEAD A B I U P BR HR H1 H2 H3 H4 H5 H6 CODE DEL STRONG INS EM SPAN DIV TABLE TR TD TH TBODY BODY LI UL OL S WBR".split(" ").includes(node_tag))){
         HTMLClean = false
         console.log(node_tag)
     }
@@ -22,10 +22,8 @@ function HTMLCopySafe(inelem,outelem){
 }
 function sanitizeHTML(html){
     HTMLClean = true;
-    const parsed = new DOMParser().parseFromString(html,"text/html").body
+    const parsed = new DOMParser().parseFromString(html,"text/html").documentElement
     let output = document.createElement("div")
     HTMLCopySafe(parsed,output)
-    let body = output.firstChild
-    output.replaceChildren(...body.childNodes)
     return output
 }

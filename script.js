@@ -178,15 +178,16 @@ socket.on("message", (m) => {
     let sanitized = sanitizeHTML(parsed)
     console.log(HTMLClean)
     if (HTMLClean){
-        msgelem.appendChild(sanitized)
+        let messagediv = document.createElement("div")
+        messagediv.replaceChildren(...sanitized.querySelector("body").children)
+        msgelem.appendChild(messagediv)
     } else{
         let messageframe = document.createElement("iframe")
         messageframe.setAttribute("sandbox","allow-same-origin")
         messageframe.classList.add("messageframe")
+        sanitized.querySelector("body").appendChild(document.createElement("style")).textContent = messageCss
+        messageframe.srcdoc=sanitized.outerHTML
         messageframe.onload = ()=>{
-            messageframe.contentDocument.body.replaceChildren(sanitized)
-            console.log(parsed)
-            messageframe.contentDocument.body.appendChild(document.createElement("style")).textContent = messageCss
             messageframe.style.height = Math.min(500,messageframe.contentDocument.documentElement.scrollHeight)+1+"px";
             if (isbottom) ID("chat").scrollTop = 999999999;
         }
@@ -215,6 +216,10 @@ socket.on("message", (m) => {
         let x = msgelem.appendChild(document.createElement(type))
         x.src = "data:"+img
         x.setAttribute("sandbox","")
+        x.classList.add("upload")
+        if (isbottom){
+            x.onload=()=>{ID("chat").scrollTop = 999999999};
+        }
     }
     if (isbottom){
         ID("chat").scrollTop = 999999999;

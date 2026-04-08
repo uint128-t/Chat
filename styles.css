@@ -71,7 +71,7 @@ textarea {
     flex-grow: 1;
     position: relative;
     height: 100%;
-    overflow-y: hidden;
+    overflow: hidden;
 }
 
 #chat {
@@ -105,11 +105,17 @@ p {
 }
 
 #users {
-    width:250px;
-    margin:20px;
-    flex-shrink: 0;
+    width:290px;
+    transition-duration:500ms;
+}
+#subusers{
+    width:290px;
+    height:100%;
     display:flex;
-    flex-flow:column nowrap;
+    flex-shrink: 0;
+    flex-flow: column nowrap;
+    padding:20px;
+    box-sizing:border-box;
 }
 #userlist{
     flex-grow:1;
@@ -164,6 +170,10 @@ p {
     max-width: 50vw;
     max-height:50vh;
     display: block;
+}
+iframe.upload{
+    width:50vw;
+    height:50vh;
 }
 
 .attachment {
@@ -222,4 +232,34 @@ pre {
     margin:0;
     padding:0;
     height:0;
+}
+.menu{
+    position:absolute;
+    transform:translateX(-100%);
+    margin-top:10px;
+    margin-left:-1px;
+    box-sizing:border-box;
+    width:40px;
+    height:40px;
+    border:#999 1px solid!important;
+    border-right:none!important;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    border:none;
+    flex-flow:column nowrap;
+}
+.line{
+    height:4px;
+    width:20px;
+    background-color: #999;
+    margin:2px;
+    flex-grow:0;
+    flex-shrink:0;
+}
+.close{
+    width:0!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    margin-bottom:0!important;
 }
