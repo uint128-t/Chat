@@ -2,7 +2,7 @@ var HTMLClean;
 function HTMLCopySafe(inelem,outelem){
     // Copies the input element to the output element
     let node_tag = inelem.tagName
-    if (!("HTML HEAD A B I U P BR HR H1 H2 H3 H4 H5 H6 CODE DEL STRONG INS EM SPAN DIV TABLE TR TD TH TBODY BODY LI UL OL S WBR".split(" ").includes(node_tag))){
+    if (!("HTML HEAD A B BLOCKQUOTE I U P BR HR H1 H2 H3 H4 H5 H6 CODE DEL STRONG INS EM SPAN DIV TABLE TR TD TH TBODY BODY LI UL OL S WBR".split(" ").includes(node_tag))){
         HTMLClean = false
         console.log(node_tag)
     }

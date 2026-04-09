@@ -1,8 +1,10 @@
+import comm
 import eventlet
 import threading
 import queue
 import readline
 import sys
+import traceback
 commands = queue.Queue()
 cont = queue.Queue()
 def console():
@@ -25,9 +27,11 @@ def processs_commands():
 
 cmdp = {}
 cmdp["help"]=lambda:print("commands:",*cmdp.keys())
+command_string = ""
 def register_command(name,fn):
     cmdp[name] = fn
 def process_command(cmd):
+    global command_string
     args = cmd.split()
     if not args: return cont.put(1)
     name = args[0]
@@ -35,9 +39,11 @@ def process_command(cmd):
         print("Command not found")
     else:
         try:
+            command_string = cmd[cmd.find(" ")+1:]
             cmdp[name](*args[1:])
         except Exception as e:
-            print("Error executing command:",e)
+            print("Error executing command:")
+            traceback.print_exc()
     cont.put(1)
 
 def log(text):

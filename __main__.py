@@ -22,6 +22,12 @@ if HTTPS:
 def kw(**kw):
     return kw
 
+def _htmlescape(s):
+    for c in s:
+        yield f"&#{ord(c)};"
+def htmlescape(s):
+    return "".join(_htmlescape(s))
+
 usrroom = {} # sid -> room
 usrname = {} # sid -> name
 useraddr = {}
@@ -71,7 +77,7 @@ def connect():
 def disconnect():
     if flask.request.sid not in usrname:
         return
-    system_message(f"**{usrname.get(flask.request.sid)}** disconnected.",room=usrroom[flask.request.sid])
+    system_message(f"**{(htmlescape(usrname.get(flask.request.sid)))}** disconnected.",room=usrroom[flask.request.sid])
     console.log(f"\x1b[31mDisconnected: {usrname.get(flask.request.sid)} ({flask.request.sid})\x1b[0m")
     cr = usrroom[flask.request.sid]
     del usrname[flask.request.sid]
@@ -93,12 +99,14 @@ def file(file):
 
 @socket.on("name")
 def name(nname):
+    nname = nname.strip()[:30]
     console.log(f"\x1b[34mChange name {flask.request.sid} to {nname} ({usrname[flask.request.sid]})\x1b[0m")
     usrname[flask.request.sid] = nname
     emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True) # update
 
 @socket.on("init")
 def init(name):
+    name = name.strip()[:30]
     userIDs.add(flask.request.sid)
     usrname[flask.request.sid] = name
     usrroom[flask.request.sid] = "main"
@@ -106,20 +114,20 @@ def init(name):
     useraddr[flask.request.sid] = flask.request.remote_addr
     join_room("main")
     emit("user",namesinroom(usrroom[flask.request.sid]),room=usrroom[flask.request.sid],broadcast=True,include_self=True)
-    system_message(f"**{usrname[flask.request.sid]}** connected.",room=usrroom[flask.request.sid])
+    system_message(f"**{htmlescape(usrname[flask.request.sid])}** connected.",room=usrroom[flask.request.sid])
 
 def user_move(user,room):
     oldroom = usrroom[user]
     usrroom[user] = room
     socket.emit("user",namesinroom(oldroom),room=oldroom)
-    system_message(f"**{usrname[user]}** left the room.",room=oldroom)
+    system_message(f"**{htmlescape(usrname[user])}** left the room.",room=oldroom)
     with app.app_context():
         leave_room(oldroom,sid=user,namespace="/")
         join_room(room,sid=user,namespace="/")
-    socket.emit("user",namesinroom(room),room=room)
-    system_message(f"**{usrname[user]}** entered the room.",room=room)
-    socket.emit("room",room,to=user)
-    console.log(f"\x1b[34mUser {usrname[flask.request.sid]} ({flask.request.sid}) moved to {r}\x1b[0m")
+        socket.emit("user",namesinroom(room),room=room)
+        system_message(f"**{htmlescape(usrname[user])}** entered the room.",room=room)
+        socket.emit("room",room,to=user)
+    console.log(f"\x1b[34mUser {usrname[user]} ({user}) moved to {room}\x1b[0m")
 
 @socket.on("room")
 def room(o):
@@ -174,10 +182,11 @@ def command_list():
         print(f"{pid}: {usrname.get(pid)} ({useraddr.get(pid)}), in {usrroom.get(pid)}")
 console.register_command("list",command_list)
 def command_js(*args):
-    socket.emit("js", " ".join(args))
+    socket.emit("js", console.command_string)
 console.register_command("js",command_js)
 def command_move(userid,*room):
-    room = " ".join(room)
+    room = console.command_string
+    room = room[room.find(" ")+1:]
     for pid in userIDs:
         if pid.startswith(userid):
             user_move(pid,room)
