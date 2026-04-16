@@ -9,7 +9,14 @@ function HTMLCopySafe(inelem,outelem){
     let curelem = document.createElement(node_tag)
     for (let attr of inelem.attributes){
         curelem.setAttribute(attr.name,attr.value)
-        HTMLClean = false
+        if (!("href src colspan rowspan".split(" ").includes(attr.name))){
+            HTMLClean = false
+            console.log(attr.name)
+        }
+        if (attr.name="href" && attr.value.startsWith("javascript:")){
+            HTMLClean = false
+            console.log("javascript: in href")
+        }
     }
     outelem.appendChild(curelem)
     for (let child of inelem.childNodes){

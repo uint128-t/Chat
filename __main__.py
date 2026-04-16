@@ -1,5 +1,5 @@
 import flask
-from flask_socketio import SocketIO,emit, join_room, leave_room
+from flask_socketio import SocketIO,emit, join_room, leave_room, send
 from collections import defaultdict
 import eventlet
 import eventlet.wsgi
@@ -47,18 +47,31 @@ def address_hash(addr):
 def msg(o):
     content = o['message']
     user = usrname[flask.request.sid]
+    target = o.get("target")
+    if target:
+        for uname,uid,uaddr in namesinroom(usrroom[flask.request.sid]):
+            if uid.startswith(target):
+                target = uid
+                break
     mid = o['id']
     img = []
     address=useraddr[flask.request.sid]
     if 'images' in o:
         img = o['images']
-    console.log(f"\x1b[1m{user} ({flask.request.sid}) in {usrroom[flask.request.sid]}:")
+    if target:
+        console.log(f"\x1b[1m{user} ({flask.request.sid}) to {target}:")
+    else:
+        console.log(f"\x1b[1m{user} ({flask.request.sid}) in {usrroom[flask.request.sid]}:")
     console.log("\x1b[0m"+content)
-    emit("message",kw(
+    messagedata = kw(
         user=user,content=content,
         images=img,userid=flask.request.sid,id=mid,
-        address=address_hash(address)
-        ),broadcast=True,include_self=True,room=usrroom[flask.request.sid])
+        address=address_hash(address),
+        target=target
+    )
+    socket.emit("message",messagedata,to=target or usrroom[flask.request.sid])
+    if target:
+        socket.emit("message",messagedata,to=flask.request.sid)
 
 def namesinroom(room)->list:
     names = []

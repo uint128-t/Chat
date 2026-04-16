@@ -54,7 +54,13 @@ send = () => {
         updateTextbox()
         return
     }
-    socket.emit("smessage", { message: n, images:images, id: sendID })
+    let target = ""
+    if (n.startsWith("/w ")){
+        let args = n.split(" ")
+        target = args[1]
+        n = args.slice(2).join(" ")
+    }
+    socket.emit("smessage", { message: n, images:images, id: sendID, target: target })
     editing.style.visibility = "hidden";
     sendID = Date.now()
     images.length = 0
@@ -146,15 +152,18 @@ socket.on("message", (m) => {
     if (!edit){
         msgelem = document.createElement("div")
         msgelem.id = "message-"+messageid
-        if (m.userid != lastUser) {
+        if (m.userid+m.target != lastUser){
             msgelem.appendChild(document.createElement("b")).textContent = user + ":"
             let uif=msgelem.appendChild(document.createElement("span"))
             uif.textContent = `\xa0(${(m.userid||"SYSTEM").substring(0,8)} ${m.address||"SERVER"})`;
+            if (m.target){
+                uif.textContent += `\xa0(to ${m.target})`;
+            }
             uif.classList.add("small")
         } else{
             msgelem.classList.add("message-cont");
         }
-        lastUser = m.userid;
+        lastUser = m.userid+m.target;
         msgelem.classList.add("message")
         if (m.userid == socket.id){
             msgelem.oncontextmenu=()=>{editmsg(messageid);return false}
@@ -186,7 +195,7 @@ socket.on("message", (m) => {
         messageframe.setAttribute("sandbox","allow-same-origin")
         messageframe.classList.add("messageframe")
         sanitized.querySelector("body").appendChild(document.createElement("style")).textContent = messageCss
-        messageframe.srcdoc=sanitized.outerHTML
+        messageframe.srcdoc="<!DOCTYPE html>"+sanitized.outerHTML
         messageframe.onload = ()=>{
             messageframe.style.height = Math.min(500,messageframe.contentDocument.documentElement.scrollHeight)+1+"px";
             if (isbottom) ID("chat").scrollTop = 999999999;
