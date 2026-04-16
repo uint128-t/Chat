@@ -8,30 +8,24 @@ var username;
 var unread = 0
 var images = []
 var sendID = Date.now()
-var editing = ID("editing")
-editing.style.visibility = "hidden";
+var editindicator = ID("editing")
+var editing = false
+editindicator.style.visibility = "hidden";
 ID("dname").value = localStorage.getItem("name");
 (async()=>{
     window.messageCss = await fetch("message.css").then(r=>r.text())
 })()
 
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 function escapeRegExp(text) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
 function editmsg(id){
+    editing = true
     sendID=id;
     ID("chatmsg").value=ID("message-"+id).getAttribute("data-content")
     updateTextbox()
-    editing.style.visibility = "visible";
+    editindicator.style.visibility = "visible";
 }
 
 send = () => {
@@ -55,13 +49,14 @@ send = () => {
         return
     }
     let target = ""
-    if (n.startsWith("/w ")){
+    if (n.startsWith("/w ") && !editing){
         let args = n.split(" ")
         target = args[1]
         n = args.slice(2).join(" ")
     }
     socket.emit("smessage", { message: n, images:images, id: sendID, target: target })
-    editing.style.visibility = "hidden";
+    editing = false
+    editindicator.style.visibility = "hidden";
     sendID = Date.now()
     images.length = 0
     updateImageList()
@@ -133,7 +128,8 @@ function updateIcon(){
 updateIcon();
 
 function editclose(){
-    editing.style.visibility = "hidden";
+    editing = false
+    editindicator.style.visibility = "hidden";
     sendID = Date.now()
 }
 
@@ -157,7 +153,7 @@ socket.on("message", (m) => {
             let uif=msgelem.appendChild(document.createElement("span"))
             uif.textContent = `\xa0(${(m.userid||"SYSTEM").substring(0,8)} ${m.address||"SERVER"})`;
             if (m.target){
-                uif.textContent += `\xa0(to ${m.target})`;
+                uif.textContent += `\xa0(to ${m.target.substring(0,8)})`;
             }
             uif.classList.add("small")
         } else{
@@ -165,12 +161,15 @@ socket.on("message", (m) => {
         }
         lastUser = m.userid+m.target;
         msgelem.classList.add("message")
-        if (m.userid == socket.id){
+        if (m.userid == socket.id && !m.target){
             msgelem.oncontextmenu=()=>{editmsg(messageid);return false}
         }
         ID("chat").appendChild(msgelem)
         msgelem.setAttribute("data-sender", m.userid)
         msgelem.setAttribute("data-content",content)
+        if (m.target){
+            msgelem.classList.add("direct")
+        }
     } else{
         msgelem = ID("message-"+messageid)
         msgelem.classList.add("edited")
@@ -214,9 +213,11 @@ socket.on("message", (m) => {
         }
     }
     if (document.visibilityState != "visible") {
-        newMessages = true;
+        if (!newMessages){
+            newMessages = true;
+            updateIcon();
+        }
     }
-    updateIcon();
     for (let img of m.images){
         let type = "iframe";
         if (img.startsWith("image")) {
@@ -246,9 +247,11 @@ ID("chatmsg").addEventListener("keydown", (e) => {
 
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState == "visible") {
-        unread = 0;
-        newMessages = false;
-        updateIcon();
+        if (unread || newMessages) {
+            unread = 0;
+            newMessages = false;
+            updateIcon();
+        }
     }
 })
 

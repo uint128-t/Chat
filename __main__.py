@@ -5,6 +5,7 @@ import eventlet
 import eventlet.wsgi
 import ssl
 import sys
+import os
 import hashlib
 from . import console
 
@@ -31,6 +32,7 @@ def htmlescape(s):
 usrroom = {} # sid -> room
 usrname = {} # sid -> name
 useraddr = {}
+addrmuted = set()
 
 def system_message(content,room=None):
     global messagect
@@ -45,14 +47,26 @@ def address_hash(addr):
 
 @socket.on("smessage")
 def msg(o):
+    global messagect
     content = o['message']
     user = usrname[flask.request.sid]
-    target = o.get("target")
-    if target:
+    dtarget = o.get("target")
+    target = []
+    if dtarget:
         for uname,uid,uaddr in namesinroom(usrroom[flask.request.sid]):
-            if uid.startswith(target):
-                target = uid
-                break
+            if uid.startswith(dtarget):
+                target.append(uid)
+        if len(target)!=1:
+            socket.emit("message",kw(
+                user="SYSTEM",
+                content=f"User not found or ambiguous.",
+                images=[],
+                id=messagect,
+                target=flask.request.sid)
+            ,to=flask.request.sid)
+            messagect+=1
+            return
+    target = target[0] if target else None
     mid = o['id']
     img = []
     address=useraddr[flask.request.sid]
@@ -70,7 +84,7 @@ def msg(o):
         target=target
     )
     socket.emit("message",messagedata,to=target or usrroom[flask.request.sid])
-    if target:
+    if target and target!=flask.request.sid:
         socket.emit("message",messagedata,to=flask.request.sid)
 
 def namesinroom(room)->list:
@@ -215,4 +229,4 @@ if HTTPS:
     listener = eventlet.wrap_ssl(eventlet.listen(('0.0.0.0', 443)),certfile='cert.pem',keyfile='key.pem',server_side=True)
     eventlet.wsgi.server(listener, app)
 else:
-    socket.run(app,host="::",port=80)
+    socket.run(app,host="::",port=int(os.environ["PORT"]) or 80)
